@@ -1,38 +1,50 @@
-let gaps = [];
 let columns = [];
 let numColumns = 5; // Number of columns
 let columnWidth = 50;
 let ball;
-let columnSpeed = 0.5;
+let columnSpeed = 1;
 let jumpDistance = 2; // Distance the ball moves forward when jumping
+let gameState = "start"; // Variable to track the game state
 
 function setup() {
   createCanvas(400, 400);
-  
-  // Initialize column heights and gaps
-  for (let i = 0; i < numColumns; i++) {
-    columns.push({
-      height: random(60, 250),
-      x: i * (columnWidth + random(45, 55)), // X position based on index
-    });
-  }
-
-  // Initialize the ball
+  resetGame();
+   // Initialize the ball
   ball = {
     x: 100, // Initial X position
     y: height - 30, // Initial Y position near the bottom
     size: 20, // Diameter of the ball
     velocityY: 0, // Initial vertical velocity
     gravity: 0.2, // Gravity effect
-    jumpStrength: 9, // Strength of the jump
-    isGrounded: true, // Check if the ball is on the ground
-    jumpCount: 0 // Track number of jumps
+    jumpStrength: 7, // Strength of the jump
+    isGrounded: true // Check if the ball is on the ground
   };
 }
+ 
 
 function draw() {
   background('skyblue');
+  
+  if (gameState === "start") {
+    drawStartScreen(); // Draw the start screen
+  } else if (gameState === "play") {
+    playGame(); // Run the game logic
+  }
+}
 
+function drawStartScreen() {
+  fill(255); // White background for start screen
+  rect(0, 0, width, height); // Draw the background
+
+  fill(0); // Black text
+  textAlign(CENTER);
+  textSize(32);
+  text("Press SPACE to Start", width / 2, height / 2 - 20);
+  textSize(16);
+  text("Jump with SPACE", width / 2, height / 2 + 20);
+}
+
+function playGame() {
   // Move columns to the left
   for (let i = 0; i < columns.length; i++) {
     columns[i].x -= columnSpeed; // Move left
@@ -66,7 +78,6 @@ function draw() {
       ball.y = height - columns[i].height - ball.size / 2; // Position on top of the column
       ball.velocityY = 0; // Reset vertical velocity
       ball.isGrounded = true; // Ball is grounded
-      ball.jumpCount = 0; // Reset jump count on landing
       break; // Stop checking after landing on one column
     }
   }
@@ -76,7 +87,6 @@ function draw() {
     ball.y = height - ball.size / 2; // Keep ball on ground
     ball.velocityY = 0; // Reset vertical velocity
     ball.isGrounded = true; // Reset grounded status
-    ball.jumpCount = 0; // Reset jump count
   }
 
   // Draw the ball
@@ -84,21 +94,28 @@ function draw() {
   ellipse(ball.x, ball.y, ball.size, ball.size); // Draw the ball
 }
 
-function keyPressed() {
-  if (key === ' ') { // Check if spacebar is pressed
-    if (ball.isGrounded || ball.jumpCount < 1) { // Allow jump if grounded or first jump
-      ball.velocityY = -ball.jumpStrength; // Jump up
-      ball.isGrounded = false; // Ball is no longer grounded
-      ball.jumpCount++; // Increment jump count
-    }
+function resetGame() {
+  // Initialize column heights
+  columns = [];
+  for (let i = 0; i < numColumns; i++) {
+    columns.push({
+      height: random(60, 250),
+      x: i * (columnWidth + random(45, 55)), // X position based on index
+    });
   }
 
-  // Move ball forward when the right arrow key is pressed
-  if (keyCode === RIGHT_ARROW && ball.isGrounded) {
-    ball.x += jumpDistance; // Move ball forward
-    // Prevent moving off the right edge of the canvas
-    if (ball.x + ball.size / 2 > width) {
-      ball.x = width - ball.size / 2; // Clamp to the right edge
+
+}
+
+function keyPressed() {
+  if (gameState === "start" && key === ' ') {
+    gameState = "play"; // Switch to the play state
+  }
+
+  if (gameState === "play") {
+    if (key === ' ') { // Check if spacebar is pressed
+      ball.velocityY = -ball.jumpStrength; // Jump up
+      ball.isGrounded = false; // Ball is no longer grounded
     }
   }
 }
