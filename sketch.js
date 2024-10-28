@@ -1,15 +1,16 @@
 let columns = [];
-let numColumns = 5; // Number of columns
+let numColumns = 5; 
 let columnWidth = 50;
 let ball;
 let columnSpeed = 1;
-let jumpDistance = 2; // Distance the ball moves forward when jumping
-let gameState = "start"; // Variable to track the game state
+let gameState = "start"; 
+let score = 0;
+let scoredColumns = []; // Track which columns have been scored
 
 function setup() {
   createCanvas(400, 400);
   resetGame();
-   // Initialize the ball
+   
   ball = {
     x: 100, // Initial X position
     y: height - 30, // Initial Y position near the bottom
@@ -17,10 +18,9 @@ function setup() {
     velocityY: 0, // Initial vertical velocity
     gravity: 0.2, // Gravity effect
     jumpStrength: 7, // Strength of the jump
-    isGrounded: true // Check if the ball is on the ground
+    isGrounded: false // Check if the ball is on the ground
   };
 }
- 
 
 function draw() {
   background('skyblue');
@@ -29,6 +29,7 @@ function draw() {
     drawStartScreen(); // Draw the start screen
   } else if (gameState === "play") {
     playGame(); // Run the game logic
+    displayScore();
   }
 }
 
@@ -53,6 +54,7 @@ function playGame() {
     if (columns[i].x < -columnWidth) {
       columns[i].height = random(60, 250);
       columns[i].x = width + columnWidth;
+      scoredColumns[i] = false; // Reset scored status for the column
     }
 
     // Draw the column
@@ -78,8 +80,20 @@ function playGame() {
       ball.y = height - columns[i].height - ball.size / 2; // Position on top of the column
       ball.velocityY = 0; // Reset vertical velocity
       ball.isGrounded = true; // Ball is grounded
+
+      // Increase score only if this column hasn't been scored yet
+      if (!scoredColumns[i]) {
+        score++; // Increment score when landing on a column
+        scoredColumns[i] = true; // Mark this column as scored
+      }
       break; // Stop checking after landing on one column
     }
+  }
+
+  // Reset ball if it goes below the ground
+  if (ball.y > height) {
+    ball.y = height - 30; // Reset ball position
+    ball.velocityY = 0; // Reset vertical velocity
   }
 
   // Clamp ball to ground level if it goes below
@@ -94,17 +108,26 @@ function playGame() {
   ellipse(ball.x, ball.y, ball.size, ball.size); // Draw the ball
 }
 
+function displayScore() {
+  fill(0);
+  textAlign(LEFT);
+  textSize(32);
+  text("Score: " + score, 10, 30);
+}
+
 function resetGame() {
-  // Initialize column heights
+  // Initialize column heights and scored status
   columns = [];
+  scoredColumns = []; // Reset scored columns
   for (let i = 0; i < numColumns; i++) {
     columns.push({
       height: random(60, 250),
       x: i * (columnWidth + random(45, 55)), // X position based on index
     });
+    scoredColumns.push(false); // Initialize all columns as not scored
   }
 
-
+  score = 0;
 }
 
 function keyPressed() {
@@ -119,3 +142,4 @@ function keyPressed() {
     }
   }
 }
+ 
